@@ -67,6 +67,8 @@ public class PentahoWebContextFilter implements Filter {
   public static final String WEB_CONTEXT_JS = "webcontext.js"; //$NON-NLS-1$
 
   public static final String PARAM_SSO_ENABLED = "ssoEnabled";
+  
+  public static final String PARAM_CONTEXT_PATH_OVERRIDE = "contextPathOverride";
 
   private static final String REQUIREJS_LOCATION = "content/common-ui/resources/web/require.js";
   private static final String REQUIREJS_CONFIG_LOCATION = "content/common-ui/resources/web/require-cfg.js";
@@ -98,6 +100,8 @@ public class PentahoWebContextFilter implements Filter {
   private static final String REQUIRE_JS = "requirejs"; //$NON-NLS-1$
 
   private String ssoEnabled = null;
+  
+  private String contextPathOverride = null;
 
   // Changed to not do so much work for every request
   private static final ThreadLocal<byte[]> THREAD_LOCAL_REQUIRE_SCRIPT = new ThreadLocal<>();
@@ -117,6 +121,8 @@ public class PentahoWebContextFilter implements Filter {
       }
     };
     this.setSsoEnabled( filterConfig.getInitParameter( PARAM_SSO_ENABLED ) );
+    
+    this.setContextPathOverride( filterConfig.getInitParameter( PARAM_CONTEXT_PATH_OVERRIDE ) );
   }
 
   @Override
@@ -398,6 +404,20 @@ public class PentahoWebContextFilter implements Filter {
     final boolean shouldUseFullyQualifiedUrl = shouldUseFullyQualifiedUrl( request );
     if ( shouldUseFullyQualifiedUrl ) {
       contextPath = getFullyQualifiedServerUrlVar();
+    }
+    
+    /**
+     * 
+     * Allow the filter to be configured to override the CONTEXT_PATH that is used by default
+     *  <init-param>
+     *    <param-name>contextPathOverride</param-name>
+     *    <param-value>/Reports/pentaho/</param-value>
+     *    <description>Overrides the context path that is automatically calculated by the filter with a fixed value</description>
+     *  </init-param>
+     */
+    String contextPathOverride = getContextPathOverride();
+    if ( contextPathOverride != null && !contextPathOverride.trim().isEmpty() ) {
+      contextPath = contextPathOverride;
     }
 
     return contextPath;
@@ -724,5 +744,15 @@ public class PentahoWebContextFilter implements Filter {
   public void setSsoEnabled( String ssoEnabled ) {
     this.ssoEnabled = ssoEnabled;
   }
+
+  public String getContextPathOverride() {
+    return contextPathOverride;
+  }
+
+  
+  public void setContextPathOverride( String contextPathOverride ) {
+    this.contextPathOverride = contextPathOverride;
+  }
+  
   // endregion
 }
